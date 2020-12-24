@@ -1,6 +1,7 @@
 import note as n
 import constants
 import random
+from typing import Union
 
 
 # make a list of notes for each guitar string, defaulting to level 0
@@ -24,7 +25,9 @@ for string in constants.STRING_TUNING:
     gtstrings.append(notes)
 
 
-# THIS IS NOT A NOTE OBJECT, just the letter is all we need
+# returns index of a note in the NOTES array
+# params: char[1] or char[2] 
+# returns int
 def getNoteLetterIndex(noteLetter):
     # find the note in the NOTES array
     index = constants.NOTES.index(noteLetter[0].upper())
@@ -42,9 +45,10 @@ def getNoteLetterIndex(noteLetter):
 
     return index
     
-
 # find the fret number given a note and a string (both contained in the Note object)
-def toFretNum(note: n.Note):
+# params: Note
+# # returns int 
+def noteToFret(note: n.Note):
 
     # find where the tuning of the string and note are in the NOTES array
     noteIndex = getNoteLetterIndex(note.getNote())
@@ -63,5 +67,19 @@ def toFretNum(note: n.Note):
     # case 3: string index = note index (fret 0 or 12 or 24 if you're crazy)
     return 0
 
-test = n.AltNote('D', 'E', 'E#')
-print(toFretNum(test))
+# given a string, a fret number, and the global notes object array (for keeping the leveling) we will get a note 
+# params: note objects(n.Note[][]), fret number(int), string(char[1] or char[2])
+# returns: either an accidental or natural note
+def fretToNote(notes, fretnum, string):
+
+    # get string index in the tuning array for the index of the first dimension
+    stringTuneIndex = constants.STRING_TUNING.index(string)
+    # get string index in the notes array for the second dimension
+    stringIndex = getNoteLetterIndex(string)
+
+    # get music note in the notes array
+    return notes[stringTuneIndex][(stringIndex + fretnum) % len(notes[stringTuneIndex])]
+    
+
+
+    
