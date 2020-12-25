@@ -1,85 +1,49 @@
-import note as n
+from note import AltNote, Note
+from card import Card
 import constants
+import util
+
 import random
-from typing import Union
+
+guitar = util.generateGuitar()
+
+cards = []
+for string in guitar:
+    for note in string: 
+        cards.append(Card(note))
 
 
-# make a list of notes for each guitar string, defaulting to level 0
-gtstrings = []
-for string in constants.STRING_TUNING:
-    index = 0
-    # make note list for a string
-    notes = []
-    for note in constants.NOTES:
-        # handle accidentals
-        if(note == 'Z'):
-            newAltNote = n.AltNote(constants.NOTES[index - 1], constants.NOTES[(index + 1) % len(constants.NOTES)], string)
-            notes.append(newAltNote)
-        else:
-            # handle naturals
-            newNote = n.Note(note, string)
-            notes.append(newNote)
-
-        index += 1
-    # append list to 
-    gtstrings.append(notes)
-
-
-# returns index of a note in the NOTES array
-# params: char[1] or char[2] 
-# returns int
-def getNoteLetterIndex(noteLetter):
-    # find the note in the NOTES array
-    index = constants.NOTES.index(noteLetter[0].upper())
-
-    # handle if the note is an accidental
-    if(len(noteLetter) > 1):
-        # check if sharp
-        if(noteLetter[1] == '#'):
-            # if sharp add one to the index
-            # shouldn't have to deal with wrapping around the array in this case
-            index += 1
-        if(noteLetter[1] == 'b'):
-            # now need to wrap backwards because Ab is at the end and indexof('A') = 0 and 0 - 1 = -1
-            index = (index - 1) % len(constants.NOTES)
-
-    return index
+def leveler(card: Card, isRight):
+    cardLevel = card.getLevel()
+    if(isRight):
+        card.setLevel(cardLevel + 1)
+    elif(cardLevel > 0):
+        card.setLevel(cardLevel - 1)
     
-# find the fret number given a note and a string (both contained in the Note object)
-# params: Note
-# # returns int 
-def noteToFret(note: n.Note):
+    # else do nothing because you can't go negative in levels
 
-    # find where the tuning of the string and note are in the NOTES array
-    noteIndex = getNoteLetterIndex(note.getNote())
-    stringIndex = getNoteLetterIndex(note.getString())
-
-    # case 1: string index > note index
-    #  need to find the amount of elements after the string (difference between length and string index), 
-    #  and then add the note index to that
-    if(stringIndex > noteIndex):
-        return len(constants.NOTES) - stringIndex + noteIndex
+def fretQuiz():
+    randCard = random.choice(cards)
+    print(randCard)
+    val = input("Enter fret number: ")
+    userNote = util.fretToNote(guitar, int(val), randCard.getNote().getString())
     
-    # case 2: string index < note index, don't need any fancy math here
-    if(stringIndex < noteIndex):
-        return noteIndex - stringIndex
+    isRight = randCard.getNote() == userNote
+    leveler(randCard, isRight)
 
-    # case 3: string index = note index (fret 0 or 12 or 24 if you're crazy)
-    return 0
+    print("level on card is now", str(randCard.getLevel()))
 
-# given a string, a fret number, and the global notes object array (for keeping the leveling) we will get a note 
-# params: note objects(n.Note[][]), fret number(int), string(char[1] or char[2])
-# returns: either an accidental or natural note
-def fretToNote(notes, fretnum, string):
+def noteQuiz():
+    randNote = util.getRandomNote(guitar)
 
-    # get string index in the tuning array for the index of the first dimension
-    stringTuneIndex = constants.STRING_TUNING.index(string)
-    # get string index in the notes array for the second dimension
-    stringIndex = getNoteLetterIndex(string)
-
-    # get music note in the notes array
-    return notes[stringTuneIndex][(stringIndex + fretnum) % len(notes[stringTuneIndex])]
+    if(isinstance(randNote, AltNote)):
+        randNote.switch()
     
+    randFret = randNote.getFret()
+    print(str(randFret) + ", " + randNote.getString() + " string")
 
-
+    val = input("Enter note: ")
     
+    print(randNote.note == val)
+
+fretQuiz()
